@@ -31,7 +31,7 @@ const firestore = getFirestore(app);
 // ==========================================
 // 2. DATA KONSTANTA & DEFAULT STATE
 // ==========================================
-const DEFAULT_API_KEY = 'AIzaSyBli7xNmfqYkj1pSPAHEscu-0rj6-a4bL0'; // API Key Gemini Anda
+const DEFAULT_API_KEY = 'AIzaSyASsvekrfU1kJCfHX_J39f30n3f_-B2MFM'; // API Key Gemini Anda
 const DEFAULT_COMMODITIES = ['Tembaga', 'Kuningan', 'Alumunium', 'Besi', 'Plastik', 'Kardus', 'Lainnya'];
 
 const VEHICLES = [
