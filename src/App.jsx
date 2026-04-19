@@ -1371,7 +1371,7 @@ function PageLaporan({ db, setDb }) {
 // ==========================================
 // PAGE PROFIL PERUSAHAAN & PENGATURAN API
 // ==========================================
-function PageProfil({ db, setDb }) {
+function PageProfil({ db, setDb, user }) { // <-- Tambahkan 'user' di sini
   const [profile, setProfile] = useState(db.companyProfile || { nama: '', alamat: '', telepon: '' });
   const [apiKey, setApiKey] = useState(db.settings?.geminiApiKey || DEFAULT_API_KEY);
   
@@ -1385,12 +1385,23 @@ function PageProfil({ db, setDb }) {
     alert("Profil dan Pengaturan Sistem Berhasil Disimpan!"); 
   };
   
-  const handleResetData = () => {
+  // FUNGSI RESET DATA YANG SUDAH DIPERBAIKI (FIREBASE CLOUD)
+  const handleResetData = async () => {
     if (window.confirm("⚠️ PERINGATAN KERAS ⚠️\n\nApakah Anda yakin ingin MENGHAPUS SELURUH DATA?\n\nData yang dihapus TIDAK BISA DIKEMBALIKAN!")) {
       if (window.confirm("Klik 'OK' sekali lagi jika Anda benar-benar yakin ingin kembali ke pengaturan awal (Data Kosong).")) {
-        localStorage.removeItem('rongsokDB');
-        alert("Seluruh data telah berhasil dibersihkan! Aplikasi akan dimuat ulang.");
-        window.location.reload();
+        try {
+          // 1. Timpa data di Firebase Cloud dengan State Kosong bawaan
+          const docRef = doc(firestore, 'users', user.uid, 'data', 'mainApp');
+          await setDoc(docRef, DEFAULT_DB_STATE);
+
+          // 2. Kosongkan tampilan di layar (State Lokal)
+          setDb(DEFAULT_DB_STATE);
+
+          alert("Seluruh data Cloud telah berhasil dibersihkan! Aplikasi akan dimuat ulang.");
+          window.location.reload();
+        } catch (error) {
+          alert("Gagal membersihkan data Cloud: " + error.message);
+        }
       }
     }
   };
