@@ -5,7 +5,7 @@ import {
   UserRound, Printer, XCircle, CheckCircle2, HardDrive, FileText, 
   Database, Users, ShoppingCart, WalletCards, ArrowRightLeft, 
   AlertTriangle, CreditCard, History, Wallet, LineChart, Activity, 
-  CalendarDays, BrainCircuit, Loader2, LogOut, Lock, Menu, X
+  CalendarDays, BrainCircuit, Loader2, LogOut, Lock, Menu, X, Sun, Moon
 } from 'lucide-react';
 
 // ==========================================
@@ -121,13 +121,30 @@ function LoginScreen() {
 // 5. MAIN DASHBOARD APP (Firebase Synced)
 // ==========================================
 function MainDashboard({ user }) {
-  const [activeTab, setActiveTab] = useState('analisis');
+  const [activeTab, setActiveTab] = useState('dompet');
   const [printNotaData, setPrintNotaData] = useState(null);
   const [db, setDb] = useState(null);
   const [isDbLoaded, setIsDbLoaded] = useState(false);
   
-  // State Responsif Mobile
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  // State Theme & Responsif
+  const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('theme') === 'dark');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+      setIsSidebarOpen(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [isDarkMode]);
 
   useEffect(() => {
     const fetchCloudData = async () => {
@@ -170,23 +187,36 @@ function MainDashboard({ user }) {
 
   const handleTabChange = (tab) => {
      setActiveTab(tab);
-     setIsMobileMenuOpen(false); // Tutup menu HP setelah klik navigasi
+     if (window.innerWidth < 1024) {
+       setIsSidebarOpen(false); // Tutup drawer menu HP setelah klik navigasi
+     }
   };
 
-  if (!isDbLoaded || !db) return <div className="min-h-screen flex items-center justify-center bg-slate-50 text-slate-800 font-bold"><Loader2 className="w-8 h-8 animate-spin text-amber-500 mr-2"/> Menyiapkan Ruang Kerja Cloud...</div>;
+  if (!isDbLoaded || !db) return <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-bold"><Loader2 className="w-8 h-8 animate-spin text-amber-500 mr-2"/> Menyiapkan Ruang Kerja Cloud...</div>;
 
   return (
-    <div className="min-h-screen bg-slate-100 flex flex-col md:flex-row font-sans text-slate-800 relative">
+    <div className="min-h-screen bg-[#f0f4f9] dark:bg-slate-950 flex flex-col font-sans text-slate-800 dark:text-slate-100 relative">
       
-      {/* HEADER MOBILE (Hanya Tampil di HP) */}
-      <div className="md:hidden bg-slate-900 text-white p-4 flex justify-between items-center z-30 sticky top-0 shadow-md hide-on-print">
-        <h1 className="text-lg font-bold text-amber-500 flex items-center gap-2">
-          <Truck className="w-5 h-5" /> Juragan Rongsok
-        </h1>
-        <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 bg-slate-800 hover:bg-slate-700 rounded-lg transition">
-          {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-        </button>
-      </div>
+      {/* TOP HEADER BAR (Hanya tampil jika sidebar tertutup) */}
+      {!isSidebarOpen && (
+        <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 p-4 flex justify-between items-center z-30 sticky top-0 shadow-sm transition-all duration-300 hide-on-print">
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => setIsSidebarOpen(true)} 
+              className="p-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition text-slate-700 dark:text-slate-350"
+              title="Open Menu"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+            <h1 className="text-lg font-black text-[#1b4f8f] dark:text-blue-400 flex items-center gap-2">
+              <Truck className="w-5 h-5" /> Juragan Rongsok
+            </h1>
+          </div>
+          <button onClick={() => setIsDarkMode(!isDarkMode)} className="p-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition text-slate-700 dark:text-slate-350" title={isDarkMode ? "Light Mode" : "Dark Mode"}>
+            {isDarkMode ? <Sun className="w-5 h-5 text-amber-400" /> : <Moon className="w-5 h-5 text-slate-600 dark:text-slate-400" />}
+          </button>
+        </div>
+      )}
 
       {/* AREA PRINT KHUSUS (ABSOLUTE METHOD) */}
       {printNotaData && (
@@ -239,52 +269,99 @@ function MainDashboard({ user }) {
         </div>
       )}
 
+      {/* MOBILE/TABLET DRAWER OVERLAY BACKDROP */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-slate-900/60 dark:bg-slate-950/80 z-40 backdrop-blur-xs lg:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
       {/* SIDEBAR NAVIGATION */}
-      <aside className={`${isMobileMenuOpen ? 'flex absolute inset-0 z-40' : 'hidden'} md:relative md:flex w-full md:w-64 bg-slate-900 text-white flex-col shadow-2xl hide-on-print md:h-screen md:sticky md:top-0 overflow-y-auto`}>
-        <div className="p-6 hidden md:block">
-          <h1 className="text-xl font-bold text-amber-500 flex items-center gap-2"><Truck className="w-6 h-6" /> Juragan Rongsok</h1>
-          <p className="text-slate-400 text-xs mt-1">Sistem ERP Bisnis Daur Ulang</p>
+      <aside className={`
+        fixed top-0 left-0 bottom-0 z-50
+        w-64 bg-[#faf6e9] dark:bg-[#0f172a] text-slate-800 dark:text-[#e2e8f0] 
+        shadow-lg border-r border-[#ebdcb9] dark:border-slate-800 
+        hide-on-print overflow-y-auto
+        transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} 
+        transition-transform duration-300 ease-in-out
+      `}>
+        {/* Brand Header & Toggle Close Button */}
+        <div className="p-4 flex justify-between items-center border-b border-[#ebdcb9] dark:border-slate-800">
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 bg-[#f4ebd0] dark:bg-slate-800 rounded-lg text-slate-700 dark:text-slate-300"><Truck className="w-5 h-5" /></div>
+            <div className="text-left">
+              <h1 className="text-md font-black text-slate-800 dark:text-white leading-tight">Juragan Rongsok</h1>
+              <p className="text-[10px] text-slate-500 dark:text-slate-450 font-semibold">Sistem ERP Daur Ulang</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-1.5">
+            {/* Theme Toggle Button */}
+            <button 
+              onClick={() => setIsDarkMode(!isDarkMode)} 
+              className="p-1.5 hover:bg-[#f0ece0] dark:hover:bg-slate-800 rounded-lg transition text-slate-600 dark:text-slate-450"
+              title={isDarkMode ? "Light Mode" : "Dark Mode"}
+            >
+              {isDarkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-600 dark:text-slate-400" />}
+            </button>
+            {/* Close Hamburger Menu Button */}
+            <button 
+              onClick={() => setIsSidebarOpen(false)} 
+              className="p-1.5 hover:bg-[#f0ece0] dark:hover:bg-slate-800 rounded-lg transition text-slate-600 dark:text-slate-450 border border-slate-350 dark:border-slate-700/50"
+              title="Close Menu"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
         </div>
-        <nav className="flex-1 px-4 space-y-1.5 pb-4 mt-4 md:mt-0">
-          <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 mt-2 px-2">Transaksi</div>
+
+        <nav className="flex-1 px-4 space-y-1.5 pb-4 mt-4">
+          <div className="text-[10px] font-bold text-slate-450 dark:text-slate-500 uppercase tracking-widest mb-2 px-2">Transaksi</div>
           <NavBtn active={activeTab === 'dompet'} onClick={() => handleTabChange('dompet')} icon={<Wallet />} text="Dompetku (Kas)" />
           <NavBtn active={activeTab === 'pembelian'} onClick={() => handleTabChange('pembelian')} icon={<PackagePlus />} text="Pembelian (Masuk)" />
           <NavBtn active={activeTab === 'penjualan'} onClick={() => handleTabChange('penjualan')} icon={<ShoppingCart />} text="Penjualan (Keluar)" />
-          <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 mt-4 px-2">Manajemen</div>
+          
+          <div className="text-[10px] font-bold text-slate-450 dark:text-slate-500 uppercase tracking-widest mb-2 mt-4 px-2">Manajemen</div>
           <NavBtn active={activeTab === 'gudang'} onClick={() => handleTabChange('gudang')} icon={<Database />} text="Gudang & Mitra" />
           <NavBtn active={activeTab === 'hutang'} onClick={() => handleTabChange('hutang')} icon={<CreditCard />} text="Buku Kasbon (Hutang)" />
           <NavBtn active={activeTab === 'operasional'} onClick={() => handleTabChange('operasional')} icon={<Settings />} text="Biaya Tetap" />
           <NavBtn active={activeTab === 'operasional_var'} onClick={() => handleTabChange('operasional_var')} icon={<Receipt />} text="Biaya Variabel" />
-          <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 mt-4 px-2">Analisis & Alat</div>
-          <NavBtn active={activeTab === 'analisis'} onClick={() => handleTabChange('analisis')} icon={<LineChart />} text="Analisis Bisnis (AI)" />
+          
+          <div className="text-[10px] font-bold text-slate-450 dark:text-slate-500 uppercase tracking-widest mb-2 mt-4 px-2">Analisis & Alat</div>
+          <br className="hidden"/>
           <NavBtn active={activeTab === 'laporan'} onClick={() => handleTabChange('laporan')} icon={<BarChart3 />} text="Laporan Keuangan" />
           <NavBtn active={activeTab === 'kalkulator'} onClick={() => handleTabChange('kalkulator')} icon={<Calculator />} text="Kalkulator Harga" />
           <NavBtn active={activeTab === 'profil'} onClick={() => handleTabChange('profil')} icon={<UserRound />} text="Profil Toko" />
         </nav>
-        <div className="p-4 border-t border-slate-800 bg-slate-900/50">
-          <div className="flex items-center gap-2 text-[11px] text-emerald-400 bg-slate-800/80 p-2 rounded-md border border-slate-700/50 mb-3"><CheckCircle2 className="w-3.5 h-3.5"/><span>Tersambung ke Cloud</span></div>
-          <div className="bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+        
+        <div className="p-4 border-t border-[#ebdcb9] dark:border-slate-800 bg-[#fdfbf7]/50 dark:bg-slate-900/30">
+          <div className="flex items-center gap-2 text-[11px] text-[#155724] dark:text-[#a3cfbb] bg-[#d4edda] dark:bg-[#143f29] p-2 rounded-lg border border-[#c3e6cb] dark:border-[#215a3a] font-bold mb-3">
+            <CheckCircle2 className="w-3.5 h-3.5"/><span>Tersambung ke Cloud</span>
+          </div>
+          <div className="bg-white dark:bg-slate-900 p-3 rounded-2xl border border-[#ebdcb9] dark:border-slate-800 shadow-sm">
              <div className="text-[10px] text-slate-400 uppercase tracking-wide font-bold mb-1">Logged In As:</div>
-             <div className="text-xs text-white truncate font-medium mb-3">{user.email}</div>
-             <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white py-2 rounded text-xs transition font-bold border border-red-900/50 hover:border-red-600"><LogOut className="w-3.5 h-3.5" /> Logout Sistem</button>
+             <div className="text-xs text-slate-700 dark:text-slate-300 truncate font-semibold mb-3">{user.email}</div>
+             <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 bg-[#f8d7da]/40 dark:bg-red-950/20 hover:bg-[#f8d7da] dark:hover:bg-red-950/40 text-[#721c24] dark:text-red-400 py-2 rounded-xl text-xs transition font-bold border border-[#f5c6cb] dark:border-red-900/40 hover:border-[#f1b0b7]"><LogOut className="w-3.5 h-3.5" /> Logout Sistem</button>
           </div>
         </div>
       </aside>
 
       {/* MAIN CONTENT AREA */}
-      <main className={`flex-1 overflow-x-hidden relative min-h-screen ${isMobileMenuOpen ? 'hidden md:block' : 'block'}`}>
+      <main className={`flex-grow min-h-screen transition-[padding] duration-300 ease-in-out ${isSidebarOpen ? 'lg:pl-64' : 'lg:pl-0'}`}>
         <div className="h-full overflow-y-auto p-4 md:p-8 hide-on-print">
-          {activeTab === 'dompet' && <PageDompetku db={db} setDb={setDb} />}
-          {activeTab === 'kalkulator' && <PageKalkulator />}
-          {activeTab === 'pembelian' && <PagePembelian db={db} setDb={setDb} setPrintNotaData={setPrintNotaData} />}
-          {activeTab === 'penjualan' && <PagePenjualan db={db} setDb={setDb} />}
-          {activeTab === 'gudang' && <PageGudang db={db} setDb={setDb} />}
-          {activeTab === 'hutang' && <PageHutang db={db} setDb={setDb} />}
-          {activeTab === 'operasional' && <PageOperasionalTetap db={db} setDb={setDb} />}
-          {activeTab === 'operasional_var' && <PageOperasionalVariabel db={db} setDb={setDb} />}
-          {activeTab === 'analisis' && <PageAnalisis db={db} />}
-          {activeTab === 'laporan' && <PageLaporan db={db} setDb={setDb} />}
-          {activeTab === 'profil' && <PageProfil db={db} setDb={setDb} user={user} />}
+          {/* Transition Animasi Page */}
+          <div key={activeTab} className="animate-fade-in-up">
+            {activeTab === 'dompet' && <PageDompetku db={db} setDb={setDb} />}
+            {activeTab === 'kalkulator' && <PageKalkulator />}
+            {activeTab === 'pembelian' && <PagePembelian db={db} setDb={setDb} setPrintNotaData={setPrintNotaData} />}
+            {activeTab === 'penjualan' && <PagePenjualan db={db} setDb={setDb} />}
+            {activeTab === 'gudang' && <PageGudang db={db} setDb={setDb} />}
+            {activeTab === 'hutang' && <PageHutang db={db} setDb={setDb} />}
+            {activeTab === 'operasional' && <PageOperasionalTetap db={db} setDb={setDb} />}
+            {activeTab === 'operasional_var' && <PageOperasionalVariabel db={db} setDb={setDb} />}
+            {activeTab === 'laporan' && <PageLaporan db={db} setDb={setDb} />}
+            {activeTab === 'profil' && <PageProfil db={db} setDb={setDb} user={user} />}
+          </div>
         </div>
       </main>
 
@@ -306,23 +383,152 @@ function MainDashboard({ user }) {
   );
 }
 
-function NavBtn({ active, onClick, icon, text }) {
+function NavBtn({ active, onClick, icon, text, collapsed }) {
   return (
-    <button onClick={onClick} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition duration-200 ${active ? 'bg-amber-500 text-slate-900 font-bold shadow-md shadow-amber-500/20' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'}`}>
-      {React.cloneElement(icon, { className: 'w-4 h-4' })}
-      <span className="text-sm">{text}</span>
+    <button 
+      onClick={onClick} 
+      title={collapsed ? text : undefined}
+      className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-left transition duration-200 ${
+        active 
+          ? 'bg-[#dce9f9] dark:bg-[#1e293b] text-[#1b4f8f] dark:text-[#60a5fa] font-bold shadow-sm border border-[#c5dbf5] dark:border-slate-800' 
+          : 'text-slate-600 dark:text-slate-450 hover:bg-[#f0ece0] dark:hover:bg-slate-800 hover:text-slate-800 dark:hover:text-slate-200'
+      } ${collapsed ? 'justify-center px-1' : ''}`}
+    >
+      <div className="flex-shrink-0">{React.cloneElement(icon, { className: 'w-4 h-4' })}</div>
+      {!collapsed && <span className="text-sm font-semibold truncate">{text}</span>}
     </button>
   );
 }
 
 // ==========================================
-// PAGE ANALISIS BISNIS DENGAN INTEGRASI AI
+// PAGE ANALISIS BISNIS DENGAN INTEGRASI AI (Moved to landing page)
 // ==========================================
-function PageAnalisis({ db }) {
+
+// ==========================================
+// PAGE DOMPETKU (KAS PERUSAHAAN)
+// ==========================================
+function FinancialDonutChart({ kas, pembelian, pengeluaran, hutang, totalModal }) {
+  const total = totalModal || 1;
+  const pKas = totalModal > 0 ? (kas / total) * 100 : 0;
+  const pPembelian = totalModal > 0 ? (pembelian / total) * 100 : 0;
+  const pPengeluaran = totalModal > 0 ? (pengeluaran / total) * 100 : 0;
+  const pHutang = totalModal > 0 ? (hutang / total) * 100 : 0;
+
+  const radius = 42;
+  const circ = 2 * Math.PI * radius; // ~263.89
+
+  const offsetKas = 0;
+  const offsetPembelian = - (pKas / 100) * circ;
+  const offsetPengeluaran = - ((pKas + pPembelian) / 100) * circ;
+  const offsetHutang = - ((pKas + pPembelian + pPengeluaran) / 100) * circ;
+
+  return (
+    <div className="flex flex-col sm:flex-row items-center justify-center gap-6 w-full px-2">
+      {/* SVG Donut Chart */}
+      <div className="relative w-36 h-36 flex-shrink-0 flex items-center justify-center">
+        <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+          {/* Background circle */}
+          <circle cx="50" cy="50" r={radius} className="stroke-slate-100 dark:stroke-slate-800" strokeWidth="9" fill="transparent" />
+          
+          {/* Segment 1: Uang Kas (Blue) */}
+          {pKas > 0 && (
+            <circle cx="50" cy="50" r={radius} stroke="#3b82f6" strokeWidth="9" fill="transparent" strokeDasharray={`${(pKas/100)*circ} ${circ}`} strokeDashoffset={offsetKas} className="transition-all duration-500" />
+          )}
+          {/* Segment 2: Pembelian (Green) */}
+          {pPembelian > 0 && (
+            <circle cx="50" cy="50" r={radius} stroke="#10b981" strokeWidth="9" fill="transparent" strokeDasharray={`${(pPembelian/100)*circ} ${circ}`} strokeDashoffset={offsetPembelian} className="transition-all duration-500" />
+          )}
+          {/* Segment 3: Pengeluaran (Orange) */}
+          {pPengeluaran > 0 && (
+            <circle cx="50" cy="50" r={radius} stroke="#f59e0b" strokeWidth="9" fill="transparent" strokeDasharray={`${(pPengeluaran/100)*circ} ${circ}`} strokeDashoffset={offsetPengeluaran} className="transition-all duration-500" />
+          )}
+          {/* Segment 4: Hutang (Red) */}
+          {pHutang > 0 && (
+            <circle cx="50" cy="50" r={radius} stroke="#f43f5e" strokeWidth="9" fill="transparent" strokeDasharray={`${(pHutang/100)*circ} ${circ}`} strokeDashoffset={offsetHutang} className="transition-all duration-500" />
+          )}
+        </svg>
+        
+        {/* Center Text */}
+        <div className="absolute text-center px-2">
+          <div className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Total Modal</div>
+          <div className="text-xs font-black text-slate-800 dark:text-white mt-0.5 truncate max-w-[80px]">{formatRp(totalModal).replace(',00', '').replace('Rp', '')}</div>
+        </div>
+      </div>
+      
+      {/* Legend Column */}
+      <div className="flex-1 w-full space-y-2">
+        <LegendItem color="bg-blue-500" label="Uang Kas" amount={kas} percent={pKas} />
+        <LegendItem color="bg-emerald-500" label="Pembelian" amount={pembelian} percent={pPembelian} />
+        <LegendItem color="bg-amber-500" label="Pengeluaran" amount={pengeluaran} percent={pPengeluaran} />
+        <LegendItem color="bg-rose-500" label="Hutang" amount={hutang} percent={pHutang} />
+      </div>
+    </div>
+  );
+}
+
+function LegendItem({ color, label, amount, percent }) {
+  return (
+    <div className="flex justify-between items-center text-xs">
+      <div className="flex items-center gap-2">
+        <div className={`w-2.5 h-2.5 rounded-full ${color}`}></div>
+        <span className="font-semibold text-slate-500 dark:text-slate-400">{label}</span>
+      </div>
+      <div className="text-right">
+        <span className="font-bold text-slate-700 dark:text-slate-200 mr-2">{formatRp(amount).replace(',00', '')}</span>
+        <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800/80 px-1 py-0.5 rounded-md">{percent.toFixed(0)}%</span>
+      </div>
+    </div>
+  );
+}
+
+// ==========================================
+// PAGE DOMPETKU (KAS PERUSAHAAN)
+// ==========================================
+function PageDompetku({ db, setDb }) {
+  const [nominalInput, setNominalInput] = useState('');
+  const [descInput, setDescInput] = useState('');
+  const [hoveredRowId, setHoveredRowId] = useState(null);
+  
+  // AI States
   const [aiResponse, setAiResponse] = useState('');
   const [isLoadingAi, setIsLoadingAi] = useState(false);
   const apiKey = db.settings?.geminiApiKey || DEFAULT_API_KEY;
 
+  const currentBalance = db.wallet?.balance || 0;
+  const history = db.wallet?.history || [];
+
+  // Hitung total pembelian (dari semua transaksi barang masuk)
+  const totalPembelian = (db.transactions || []).reduce((sum, t) => sum + (t.totalBarang || 0), 0);
+
+  // Hitung total pengeluaran (biaya tetap yang dibayar + biaya variabel)
+  const totalVarCosts = (db.variableCosts || []).reduce((sum, v) => sum + (v.harga || 0), 0);
+  const totalFixedCosts = (db.wallet?.history || []).filter(h => h.type === 'OUT' && h.desc.startsWith('Bayar Biaya Tetap:')).reduce((sum, h) => sum + h.amount, 0);
+  const totalPengeluaran = totalVarCosts + totalFixedCosts;
+
+  // Hitung total hutang aktif (kasbon belum lunas)
+  const totalHutang = (db.debtors || []).reduce((sum, d) => {
+    const pinjam = d.history.filter(h => h.type === 'PINJAM').reduce((s, h) => s + h.amount, 0);
+    const lunas = d.history.filter(h => h.type === 'LUNAS').reduce((s, h) => s + h.amount, 0);
+    return sum + Math.max(0, pinjam - lunas);
+  }, 0);
+
+  // Hitung Laba Bersih
+  const totalProfitKotor = (db.sales || []).reduce((sum, s) => sum + (s.profit || 0), 0);
+  const netProfit = totalProfitKotor - totalPengeluaran;
+
+  // Total Modal = Kas + Pembelian + Pengeluaran + Hutang
+  const totalModal = currentBalance + totalPembelian + totalPengeluaran + totalHutang;
+
+  // Daftar tunggakan mitra
+  const debtorsWithOutstanding = useMemo(() => {
+    return (db.debtors || []).map(d => {
+      const pinjam = d.history.filter(h => h.type === 'PINJAM').reduce((s, h) => s + h.amount, 0);
+      const lunas = d.history.filter(h => h.type === 'LUNAS').reduce((s, h) => s + h.amount, 0);
+      return { name: d.name, sisa: pinjam - lunas };
+    }).filter(d => d.sisa > 0).sort((a, b) => b.sisa - a.sisa);
+  }, [db.debtors]);
+
+  // Hitung monthlyData untuk AI
   const monthlyData = useMemo(() => {
     const data = {};
     const initMonth = (m) => {
@@ -342,48 +548,21 @@ function PageAnalisis({ db }) {
     });
     return Object.values(data).map(d => {
        const totalExpense = d.hpp + d.opsVar + d.opsTetap;
-       const netProfit = d.income - totalExpense;
-       return { ...d, totalExpense, netProfit };
+       const netProfitVal = d.income - totalExpense;
+       return { ...d, totalExpense, netProfit: netProfitVal };
     }).sort((a, b) => a.month.localeCompare(b.month));
   }, [db]);
-
-  const insights = useMemo(() => {
-     if (monthlyData.length < 2) return [{ type: 'info', text: 'Data belum cukup untuk membandingkan performa antar bulan. Catat terus transaksi Anda.' }];
-     const current = monthlyData[monthlyData.length - 1];
-     const prev = monthlyData[monthlyData.length - 2];
-     const alerts = [];
-     if (current.income < prev.income * 0.8) {
-        const drop = (((prev.income - current.income) / prev.income) * 100).toFixed(0);
-        alerts.push({ type: 'danger', text: `Pendapatan bulan ${current.month} turun ${drop}% dibanding bulan sebelumnya. Cek kembali rutinitas penjualan pabrik Anda!` });
-     } else if (current.income > prev.income * 1.2) {
-        const up = (((current.income - prev.income) / prev.income) * 100).toFixed(0);
-        alerts.push({ type: 'success', text: `Luar Biasa! Pendapatan bulan ${current.month} naik ${up}%! Pertahankan momentum ini.` });
-     }
-     if (current.opsVar > prev.opsVar * 1.5 && current.opsVar > 100000) {
-        alerts.push({ type: 'warning', text: `Hati-hati! Biaya operasional harian membengkak ekstrim pada bulan ${current.month}. Lakukan efisiensi bensin/kuli.` });
-     }
-     if (current.netProfit < 0) {
-        alerts.push({ type: 'danger', text: `Bulan ${current.month} mengalami KERUGIAN BERSIH sebesar ${formatRp(Math.abs(current.netProfit))}. Hal ini bisa disebabkan harga jual (pabrik) turun sementara harga beli Anda tetap tinggi.` });
-     }
-     return alerts.length > 0 ? alerts : [{ type: 'success', text: 'Performa bisnis stabil dan sehat. Tidak ada anomali negatif yang terdeteksi.' }];
-  }, [monthlyData]);
-
-  const maxChartValue = Math.max(...monthlyData.map(d => Math.max(d.income, d.totalExpense, 1)));
 
   const handleRequestAI = async () => {
      if (!apiKey) return alert("API Key Gemini belum diisi!\n\nSilakan buka menu 'Profil Toko' lalu masukkan API Key Anda.");
      setIsLoadingAi(true); setAiResponse('');
-     const totalKasbon = (db.debtors || []).reduce((sum, d) => {
-        const pinjam = d.history.filter(h => h.type === 'PINJAM').reduce((s, h) => s + h.amount, 0);
-        const lunas = d.history.filter(h => h.type === 'LUNAS').reduce((s, h) => s + h.amount, 0);
-        return sum + (pinjam - lunas);
-     }, 0);
      const promptData = `
         Saya memiliki usaha jual beli rongsokan/barang bekas logam.
         Berikut data rekap keuangan bulanan saya: ${JSON.stringify(monthlyData, null, 2)}
-        Total Uang Kasbon di tangan pengepul saat ini: Rp ${totalKasbon}. Saldo Kas Saat ini: Rp ${db.wallet?.balance || 0}.
+        Total Uang Kasbon di tangan pengepul saat ini: Rp ${totalHutang}. Saldo Kas Saat ini: Rp ${currentBalance}.
+        Daftar tunggakan kasbon pengepul: ${JSON.stringify(debtorsWithOutstanding)}.
         Tolong bertindak sebagai Konsultan Bisnis. 
-        Analisis data tersebut dan berikan saya: 1. Analisis singkat performa. 2. Temukan kelemahan. 3. Berikan 3 rekomendasi strategi konkrit agar bisnis rongsok saya bisa lebih untung.
+        Analisis data tersebut dan berikan saya: 1. Analisis singkat performa. 2. Temukan kelemahan (termasuk kasbon). 3. Berikan 3 rekomendasi strategi konkrit agar bisnis rongsok saya bisa lebih untung.
         Jawab dengan bahasa Indonesia yang ramah.
      `;
      try {
@@ -397,102 +576,13 @@ function PageAnalisis({ db }) {
      finally { setIsLoadingAi(false); }
   };
 
-  return (
-     <div className="max-w-6xl mx-auto space-y-6">
-        <div className="bg-slate-900 p-6 md:p-8 rounded-2xl shadow-xl text-white flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-           <div>
-              <h2 className="text-xl md:text-2xl font-bold flex items-center gap-3"><LineChart className="text-amber-500 w-6 h-6 md:w-8 md:h-8" /> Analisis & Performa Bisnis</h2>
-              <p className="text-slate-400 text-sm mt-1">Pantau grafik pertumbuhan dan minta saran strategi dari Konsultan AI.</p>
-           </div>
-           {!apiKey ? (
-              <div className="bg-red-500/20 border border-red-500 text-red-200 px-4 py-2 rounded-lg text-xs font-bold text-center w-full md:w-auto">API Key Gemini Belum Diatur.<br/><span className="font-normal opacity-80">Atur di menu Profil Toko.</span></div>
-           ) : (
-              <div className="bg-emerald-500/20 border border-emerald-500 text-emerald-200 px-4 py-2 rounded-lg text-xs font-bold text-center w-full md:w-auto">AI Terhubung <CheckCircle2 className="w-3 h-3 inline"/></div>
-           )}
-        </div>
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 border-t-4 border-t-purple-500">
-           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-              <div><h3 className="font-bold text-slate-800 text-lg flex items-center gap-2"><BrainCircuit className="w-6 h-6 text-purple-500"/> Konsultan Bisnis AI</h3><p className="text-sm text-slate-500 mt-1">Sistem akan menganalisis data keuangan Anda dan memberikan saran strategi usaha.</p></div>
-              <button onClick={handleRequestAI} disabled={isLoadingAi || monthlyData.length === 0} className={`w-full md:w-auto px-6 py-3 rounded-xl font-bold shadow-md transition flex items-center justify-center gap-2 ${isLoadingAi || monthlyData.length === 0 ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-500 text-white'}`}>
-                 {isLoadingAi ? <><Loader2 className="w-5 h-5 animate-spin"/> Menganalisis...</> : <><BrainCircuit className="w-5 h-5"/> Minta Analisis AI</>}
-              </button>
-           </div>
-           {aiResponse && <div className="bg-purple-50 border border-purple-100 p-6 rounded-xl text-slate-700 text-sm leading-relaxed whitespace-pre-wrap">{aiResponse}</div>}
-        </div>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-           <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 lg:col-span-2">
-              <h3 className="font-bold text-slate-800 mb-6 flex items-center gap-2"><Activity className="w-5 h-5 text-blue-500"/> Grafik Pendapatan vs Pengeluaran</h3>
-              {monthlyData.length === 0 ? (
-                 <div className="h-64 flex items-center justify-center text-slate-400 border-2 border-dashed rounded-xl">Belum ada data.</div>
-              ) : (
-                 <div className="h-64 flex items-end gap-4 overflow-x-auto pb-4 pt-10 px-2 border-b border-slate-200 custom-scrollbar">
-                    {monthlyData.map((d, i) => {
-                       const incomeHeight = (d.income / maxChartValue) * 100;
-                       const expenseHeight = (d.totalExpense / maxChartValue) * 100;
-                       return (
-                          <div key={i} className="flex flex-col items-center gap-2 group flex-shrink-0 min-w-[80px]">
-                             <div className="flex items-end gap-1 h-48 w-full relative">
-                                <div className="w-1/2 bg-blue-500 rounded-t-sm relative" style={{ height: `${incomeHeight}%` }}></div>
-                                <div className="w-1/2 bg-red-400 rounded-t-sm relative" style={{ height: `${expenseHeight}%` }}></div>
-                             </div>
-                             <div className="text-[10px] font-bold text-slate-500 whitespace-nowrap">{d.month}</div>
-                             <div className={`text-[10px] font-black ${d.netProfit >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>{d.netProfit >= 0 ? '+' : ''}{formatRp(d.netProfit)}</div>
-                          </div>
-                       )
-                    })}
-                 </div>
-              )}
-              <div className="flex flex-wrap gap-4 mt-4 justify-center text-xs font-bold text-slate-500">
-                 <div className="flex items-center gap-2"><div className="w-3 h-3 bg-blue-500 rounded-sm"></div> Pemasukan Kotor</div>
-                 <div className="flex items-center gap-2"><div className="w-3 h-3 bg-red-400 rounded-sm"></div> Pengeluaran (HPP+Ops)</div>
-              </div>
-           </div>
-           <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-              <h3 className="font-bold text-slate-800 mb-6 flex items-center gap-2"><AlertCircle className="w-5 h-5 text-amber-500"/> Peringatan Sistem Dasar</h3>
-              <div className="space-y-4">
-                 {insights.map((insight, idx) => (
-                    <div key={idx} className={`p-4 rounded-xl border ${insight.type === 'danger' ? 'bg-red-50 border-red-200 text-red-800' : insight.type === 'warning' ? 'bg-amber-50 border-amber-200 text-amber-800' : insight.type === 'success' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-blue-50 border-blue-200 text-blue-800'}`}>
-                       <p className="text-sm font-medium leading-relaxed">{insight.text}</p>
-                    </div>
-                 ))}
-              </div>
-           </div>
-        </div>
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-           <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2"><CalendarDays className="w-5 h-5 text-slate-500"/> Rincian Keuangan per Bulan</h3>
-           <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm border-collapse min-w-[600px]">
-                 <thead className="bg-slate-50 border-b border-slate-200"><tr><th className="p-3">Bulan</th><th className="p-3 text-right">Pendapatan Kotor</th><th className="p-3 text-right">HPP (Modal)</th><th className="p-3 text-right">Ops Variabel</th><th className="p-3 text-right">Ops Tetap</th><th className="p-3 text-right">Laba Bersih</th></tr></thead>
-                 <tbody className="divide-y divide-slate-100">
-                    {monthlyData.slice().reverse().map((d, i) => (
-                       <tr key={i} className="hover:bg-slate-50">
-                          <td className="p-3 font-bold text-slate-700">{d.month}</td><td className="p-3 text-right text-blue-600 font-medium">{formatRp(d.income)}</td><td className="p-3 text-right text-red-400">-{formatRp(d.hpp)}</td><td className="p-3 text-right text-red-400">-{formatRp(d.opsVar)}</td><td className="p-3 text-right text-red-400">-{formatRp(d.opsTetap)}</td><td className={`p-3 text-right font-black ${d.netProfit >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{formatRp(d.netProfit)}</td>
-                       </tr>
-                    ))}
-                 </tbody>
-              </table>
-           </div>
-        </div>
-     </div>
-  );
-}
-
-// ==========================================
-// PAGE DOMPETKU (KAS PERUSAHAAN)
-// ==========================================
-function PageDompetku({ db, setDb }) {
-  const [nominalInput, setNominalInput] = useState('');
-  const [descInput, setDescInput] = useState('');
-  const currentBalance = db.wallet?.balance || 0;
-  const history = db.wallet?.history || [];
-
   const handleAddSaldo = (e) => {
     e.preventDefault();
     if (!nominalInput) return;
     const amountToAdd = Number(nominalInput);
     setDb(prev => {
       const prevBalance = prev.wallet?.balance || 0;
-      const newHistoryItem = { id: Date.now(), date: new Date().toISOString().split('T')[0], type: 'IN', amount: amountToAdd, desc: descInput || 'Top-up Saldo Manual' };
+      const newHistoryItem = { id: Date.now(), date: new Date().toISOString().split('T')[0], type: 'IN', amount: amountToAdd, desc: descInput || 'Top-up Saldo Manual', status: 'Successful' };
       return { ...prev, wallet: { balance: prevBalance + amountToAdd, history: [newHistoryItem, ...(prev.wallet?.history || [])] } };
     });
     alert('Saldo kas berhasil ditambahkan!');
@@ -501,47 +591,204 @@ function PageDompetku({ db, setDb }) {
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
-      <div className="bg-gradient-to-br from-emerald-600 to-emerald-800 p-8 md:p-10 rounded-3xl shadow-xl text-white relative overflow-hidden flex flex-col items-center justify-center">
-         <div className="absolute right-0 top-0 opacity-20"><Wallet className="w-64 h-64 -mr-10 -mt-10" /></div>
+      
+      {/* Welcome greeting header */}
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-800 dark:text-white">
+            Good morning, <span className="text-[#1b4f8f] dark:text-blue-400">Admin!</span> 👋
+          </h1>
+        </div>
+      </div>
+
+      {/* Saldo Kas Aktif card */}
+      <div className="bg-gradient-to-r from-blue-50 to-blue-100/50 dark:from-[#1e293b]/30 dark:to-[#0f172a]/20 p-8 rounded-3xl border border-blue-200/50 dark:border-slate-800 shadow-sm text-center relative overflow-hidden flex flex-col items-center justify-center">
          <div className="relative z-10 text-center">
-            <h2 className="text-emerald-200 font-bold uppercase tracking-widest text-sm mb-2 flex items-center justify-center gap-2"><WalletCards className="w-5 h-5"/> SALDO KAS AKTIF</h2>
-            <div className="text-4xl md:text-7xl font-black drop-shadow-md mb-2 break-all">{formatRp(currentBalance)}</div>
-            <p className="text-emerald-100 text-sm mt-4 max-w-lg mx-auto">Saldo akan otomatis berkurang saat Pembelian/Operasional, dan bertambah saat Penjualan.</p>
+            <h2 className="text-slate-400 font-bold uppercase tracking-wider text-xs mb-3 flex items-center justify-center gap-2">
+              <CalendarDays className="w-4 h-4 text-slate-400" /> SALDO KAS AKTIF
+            </h2>
+            <div className="text-4xl md:text-6xl font-black text-slate-800 dark:text-white mb-2 tracking-tight">{formatRp(currentBalance)}</div>
+            <p className="text-slate-500 dark:text-slate-400 text-xs mt-4 max-w-xl mx-auto leading-relaxed">Saldo akan otomatis berkurang saat Pembelian/Operational/Operasional, dan bertambah saat Penjualan.</p>
          </div>
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-1">
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 sticky top-6">
-            <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2"><Plus className="text-emerald-500"/> Tambah Saldo Manual</h3>
-            <form onSubmit={handleAddSaldo} className="space-y-4">
-              <div><label className="block text-xs font-bold text-slate-500 uppercase mb-2">Jumlah Saldo (Rp)</label><input type="number" value={nominalInput} onChange={e=>setNominalInput(e.target.value)} className="w-full p-3 border border-slate-300 rounded-lg text-lg font-bold text-slate-800 outline-none focus:border-emerald-500 transition" placeholder="0" required/></div>
-              <div><label className="block text-xs font-bold text-slate-500 uppercase mb-2">Keterangan (Opsional)</label><input type="text" value={descInput} onChange={e=>setDescInput(e.target.value)} className="w-full p-3 border border-slate-300 rounded-lg outline-none focus:border-emerald-500 transition" placeholder="Contoh: Tambahan modal..."/></div>
-              <button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-lg shadow-md transition mt-2">SIMPAN SALDO</button>
+
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        {/* Tambah Saldo Manual Column */}
+        <div className="lg:col-span-2">
+          <div className="bg-white rounded-3xl border border-slate-200/60 shadow-sm overflow-hidden flex flex-col h-full">
+            <div className="bg-gradient-to-r from-[#dce9f9] to-[#edf4fc] border-b border-[#c5dbf5] px-6 py-4 flex items-center gap-2">
+              <Plus className="text-[#1b4f8f] w-5 h-5 font-bold" />
+              <h3 className="text-sm font-bold text-[#1b4f8f]">+ Tambah Saldo Manual</h3>
+            </div>
+            <form onSubmit={handleAddSaldo} className="p-6 flex-1 flex flex-col justify-between space-y-4">
+              <div>
+                <label className="block text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">JUMLAH SALDO (RP)</label>
+                <input type="number" value={nominalInput} onChange={e=>setNominalInput(e.target.value)} className="w-full p-3 border border-slate-200 rounded-xl font-bold text-slate-800 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition" placeholder="0" required/>
+              </div>
+              <div>
+                <label className="block text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">KETERANGAN (OPSIONAL)</label>
+                <input type="text" value={descInput} onChange={e=>setDescInput(e.target.value)} className="w-full p-3 border border-slate-200 rounded-xl text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition" placeholder="Contoh: Tambahan modal..."/>
+              </div>
+              <button type="submit" className="w-full bg-[#007bff] hover:bg-[#0069d9] text-white font-bold py-3.5 rounded-xl shadow-sm transition mt-4 uppercase text-xs tracking-wider">SIMPAN SALDO</button>
             </form>
           </div>
         </div>
-        <div className="lg:col-span-2">
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-            <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2"><History className="text-blue-500"/> Riwayat Arus Kas (Mutasi)</h3>
-            <div className="overflow-x-auto max-h-[500px]">
-               <table className="w-full text-left text-sm border-collapse relative min-w-[500px]">
-                  <thead className="bg-slate-50 sticky top-0 shadow-sm z-10">
-                     <tr><th className="p-4 text-slate-500 font-bold uppercase text-[10px] tracking-wider">Tanggal</th><th className="p-4 text-slate-500 font-bold uppercase text-[10px] tracking-wider">Keterangan</th><th className="p-4 text-slate-500 font-bold uppercase text-[10px] tracking-wider text-right">Debit (Masuk)</th><th className="p-4 text-slate-500 font-bold uppercase text-[10px] tracking-wider text-right">Kredit (Keluar)</th></tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                     {history.length === 0 && <tr><td colSpan="4" className="p-8 text-center text-slate-400 italic">Belum ada riwayat transaksi keuangan.</td></tr>}
-                     {history.map(item => (
-                        <tr key={item.id} className="hover:bg-slate-50 transition">
-                           <td className="p-4 text-slate-500 font-medium whitespace-nowrap">{item.date}</td>
-                           <td className="p-4 font-semibold text-slate-700">{item.desc}</td>
-                           <td className="p-4 text-right font-black text-emerald-600">{item.type === 'IN' ? `+ ${formatRp(item.amount)}` : '-'}</td>
-                           <td className="p-4 text-right font-black text-red-500">{item.type === 'OUT' ? `- ${formatRp(item.amount)}` : '-'}</td>
-                        </tr>
-                     ))}
-                  </tbody>
-               </table>
+
+        {/* Quick Insights Column */}
+        <div className="lg:col-span-3">
+          <div className="bg-white rounded-3xl border border-slate-200/60 shadow-sm overflow-hidden flex flex-col h-full">
+            <div className="bg-gradient-to-r from-[#dce9f9] to-[#edf4fc] border-b border-[#c5dbf5] px-6 py-4 flex items-center gap-2">
+              <Activity className="text-[#1b4f8f] w-5 h-5" />
+              <h3 className="text-sm font-bold text-[#1b4f8f]">Quick Insights</h3>
+            </div>
+            <div className="p-6 flex-grow flex items-center justify-center">
+              <FinancialDonutChart 
+                kas={currentBalance} 
+                pembelian={totalPembelian} 
+                pengeluaran={totalPengeluaran} 
+                hutang={totalHutang} 
+                totalModal={totalModal} 
+              />
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* NEW: Financial Insights Row */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Laba Bersih Card */}
+        <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200/60 dark:border-slate-800 shadow-sm flex flex-col justify-between">
+          <div>
+            <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider block mb-2">Laba Bersih Usaha</span>
+            <div className={`text-2xl font-black ${netProfit >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>{netProfit >= 0 ? '+' : ''}{formatRp(netProfit)}</div>
+          </div>
+          <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-4 leading-relaxed">Total profit kotor penjualan dikurangi biaya operasional terbayar.</p>
+        </div>
+
+        {/* Piutang Kasbon Card */}
+        <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200/60 dark:border-slate-800 shadow-sm flex flex-col justify-between">
+          <div>
+            <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider block mb-2">Total Piutang Kasbon</span>
+            <div className="text-2xl font-black text-slate-800 dark:text-white">{formatRp(totalHutang)}</div>
+          </div>
+          <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-4 leading-relaxed">Dana perusahaan yang saat ini masih dipinjam/belum dikembalikan mitra.</p>
+        </div>
+
+        {/* Tunggakan Terbesar Card */}
+        <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200/60 dark:border-slate-800 shadow-sm flex flex-col justify-between">
+          <div>
+            <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider block mb-2">Tunggakan Mitra Terbesar</span>
+            <div className="space-y-1.5 mt-2 max-h-[75px] overflow-y-auto custom-scrollbar">
+              {debtorsWithOutstanding.slice(0, 3).map((d, i) => (
+                <div key={i} className="flex justify-between items-center text-xs">
+                  <span className="font-semibold text-slate-600 dark:text-slate-350 truncate max-w-[120px]">{d.name}</span>
+                  <span className="font-black text-rose-500">{formatRp(d.sisa).replace(',00', '')}</span>
+                </div>
+              ))}
+              {debtorsWithOutstanding.length === 0 && (
+                <div className="text-xs text-emerald-500 font-bold italic py-1">Semua kasbon mitra lunas! 🎉</div>
+              )}
+            </div>
+          </div>
+          <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-3 leading-relaxed">Rincian mitra dengan kasbon outstanding tertinggi.</p>
+        </div>
+      </div>
+
+      {/* NEW: AI Business Consultant */}
+      <div className="bg-white rounded-3xl border border-slate-200/60 shadow-sm overflow-hidden border-t-4 border-t-purple-500">
+         <div className="bg-gradient-to-r from-purple-50 to-purple-100/30 px-6 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h3 className="font-bold text-slate-800 dark:text-white text-base flex items-center gap-2">
+                <BrainCircuit className="w-5 h-5 text-purple-500"/> Konsultan Bisnis AI
+              </h3>
+              <p className="text-xs text-slate-500 mt-0.5">Sistem menganalisis arus kas, profit, dan tunggakan kasbon untuk menyusun strategi.</p>
+            </div>
+            <button 
+              onClick={handleRequestAI} 
+              disabled={isLoadingAi || monthlyData.length === 0} 
+              className={`w-full sm:w-auto px-5 py-2.5 rounded-xl font-bold shadow-sm transition flex items-center justify-center gap-2 text-xs ${
+                isLoadingAi || monthlyData.length === 0 
+                  ? 'bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500 cursor-not-allowed' 
+                  : 'bg-purple-600 hover:bg-purple-500 text-white'
+              }`}
+            >
+               {isLoadingAi ? <><Loader2 className="w-4 h-4 animate-spin"/> Menganalisis...</> : <><BrainCircuit className="w-4 h-4"/> Minta Analisis AI</>}
+            </button>
+         </div>
+         {aiResponse && (
+           <div className="p-6 border-t border-slate-100 dark:border-slate-800 bg-purple-50/10 dark:bg-purple-950/5">
+             <div className="bg-white dark:bg-slate-900 border border-purple-100/50 dark:border-purple-900/30 p-6 rounded-2xl text-slate-700 dark:text-slate-350 text-sm leading-relaxed whitespace-pre-wrap shadow-inner">
+               {aiResponse}
+             </div>
+           </div>
+         )}
+      </div>
+
+      {/* Riwayat Arus Kas (Mutasi) Card */}
+      <div className="bg-white rounded-3xl border border-slate-200/60 shadow-sm overflow-hidden">
+        <div className="bg-gradient-to-r from-[#dce9f9] to-[#edf4fc] border-b border-[#c5dbf5] px-6 py-4 flex items-center gap-2">
+          <History className="text-[#1b4f8f] w-5 h-5" />
+          <h3 className="text-sm font-bold text-[#1b4f8f]">Riwayat Arus Kas (Mutasi)</h3>
+        </div>
+        <div className="overflow-x-auto p-4">
+           <table className="w-full text-left text-sm border-separate border-spacing-y-2.5 min-w-[600px]">
+              <thead>
+                 <tr className="text-slate-400 text-[10px] font-black uppercase tracking-wider">
+                   <th className="px-4 py-2">TANGGAL</th>
+                   <th className="px-4 py-2">KETERANGAN</th>
+                   <th className="px-4 py-2 text-center">DEBIT (MASUK)</th>
+                   <th className="px-4 py-2 text-center">KREDIT (KELUAR)</th>
+                   <th className="px-4 py-2 text-center">STATUS</th>
+                 </tr>
+              </thead>
+              <tbody>
+                 {history.length === 0 && <tr><td colSpan="5" className="p-8 text-center text-slate-400 italic">Belum ada riwayat transaksi keuangan.</td></tr>}
+                 {history.map((item, idx) => {
+                    const itemStatus = item.status || 'Successful';
+                    const isHighlighted = item.id === hoveredRowId;
+                    const tdClass = isHighlighted
+                      ? 'py-3.5 px-4 bg-emerald-50/20 dark:bg-emerald-950/25 border-t-2 border-b-2 border-emerald-400 first:border-l-2 first:rounded-l-xl last:border-r-2 last:rounded-r-xl shadow-sm transition-all duration-150'
+                      : 'py-3.5 px-4 bg-white dark:bg-slate-900 border-t border-b border-slate-100 dark:border-slate-800/80 first:border-l first:rounded-l-xl last:border-r last:rounded-r-xl transition-all duration-150';
+                    
+                    return (
+                      <tr 
+                        key={item.id} 
+                        className="transition-all"
+                        onMouseEnter={() => setHoveredRowId(item.id)}
+                        onMouseLeave={() => setHoveredRowId(null)}
+                      >
+                         <td className={tdClass + " text-slate-500 font-medium whitespace-nowrap"}>{item.date}</td>
+                         <td className={tdClass + " font-semibold text-slate-700 dark:text-slate-300"}>{item.desc}</td>
+                         <td className={tdClass + " text-center"}>
+                            {item.type === 'IN' ? (
+                              <span className="inline-block bg-emerald-100 text-emerald-800 font-bold px-3 py-1 rounded-full text-xs">
+                                + {formatRp(item.amount)}
+                              </span>
+                            ) : '-'}
+                         </td>
+                         <td className={tdClass + " text-center"}>
+                            {item.type === 'OUT' ? (
+                              <span className="inline-block bg-rose-100 text-rose-800 font-bold px-3 py-1 rounded-full text-xs">
+                                - {formatRp(item.amount)}
+                              </span>
+                            ) : '-'}
+                         </td>
+                         <td className={tdClass + " text-center"}>
+                            <span className={`inline-block font-bold px-3 py-1 rounded-full text-xs ${
+                              itemStatus === 'Successful' 
+                                ? 'bg-emerald-100 text-emerald-800' 
+                                : itemStatus === 'Pending' 
+                                  ? 'bg-amber-100 text-amber-800' 
+                                  : 'bg-rose-100 text-rose-800'
+                            }`}>
+                              {itemStatus}
+                            </span>
+                         </td>
+                      </tr>
+                    );
+                 })}
+              </tbody>
+           </table>
         </div>
       </div>
     </div>
